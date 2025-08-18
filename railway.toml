@@ -1,5 +1,39 @@
-[build]
-builder = "NIXPACKS"
+‍from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+import asyncio
 
-[deploy]
-startCommand = "hypercorn main:app --bind \"[::]:$PORT\""
+API_TOKEN = "8357943292:AAFj1-EqFaYcJv0v3i5oaiAq0PukEY8RHgo"  # توکن BotFather
+ADMIN_ID = 8357943292  # آیدی شما
+
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
+
+CHANNELS = ["@DARKLEGENDSIR", "@DARK_LEGENDS_CHANNEL"]
+
+async def check_subs(user_id):
+    for channel in CHANNELS:
+        member = await bot.get_chat_member(channel, user_id)
+        if member.status in ["left", "kicked"]:
+            return False
+    return True
+
+@dp.message_handler(commands=["start"])
+async def start_cmd(message: types.Message):
+    if await check_subs(message.from_user.id):
+        await message.answer("✅ خوش اومدی! حالا می‌تونی از امکانات ربات استفاده کنی.")
+    else:
+        keyboard = InlineKeyboardMarkup()
+        keyboard.add(InlineKeyboardButton("📢 DARKLEGENDSIR", url="https://t.me/DARKLEGENDSIR"))
+        keyboard.add(InlineKeyboardButton("⚡ DARK LEGENDS CHANNEL", url="https://t.me/DARK_LEGENDS_CHANNEL"))
+        keyboard.add(InlineKeyboardButton("✅ عضو شدم", callback_data="check_subs"))
+        await message.answer("🔒 برای استفاده از ربات باید در هر دو کانال عضو بشی:", reply_markup=keyboard)
+
+@dp.callback_query_handler(lambda c: c.data == "check_subs")
+async def recheck(call: types.CallbackQuery):
+    if await check_subs(call.from_user.id):
+        await call.message.edit_text("✅ عضویتت تایید شد! حالا می‌تونی از امکانات ربات استفاده کنی.")
+    else:
+        await call.answer("❌ هنوز عضو کانال‌ها نشدی!", show_alert=True)
+
+if __name__ == "__main__":
+    executor.start_polling(bot, skip_updates=True)
