@@ -1,28 +1,34 @@
-import asyncio
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+import os
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 API_TOKEN = "8357943292:AAFj1-EqFaYcJv0v3i5oaiAq0PukEY8RHgo"
 
-bot = Bot(token=API_TOKEN)
-dp = Dispatcher()
-
-@dp.message(Command("start"))
-async def start_cmd(message: types.Message):
-    keyboard = types.InlineKeyboardMarkup(
-        inline_keyboard=[
-            [types.InlineKeyboardButton(text="📢 DARKLEGENDSIR", url="https://t.me/DARKLEGENDSIR")],
-            [types.InlineKeyboardButton(text="⚡ DARK LEGENDS CHANNEL", url="https://t.me/DARK_LEGENDS_CHANNEL")]
-        ]
-    )
+# تعریف تابع استارت
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("📢 DARKLEGENDSIR", url="https://t.me/DARKLEGENDSIR")],
+        [InlineKeyboardButton("⚡ DARK LEGENDS CHANNEL", url="https://t.me/DARK_LEGENDS_CHANNEL")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await message.answer(
-        f"✅ سلام {message.from_user.full_name}! خوش آمدی 🎉\nنیازی به عضویت در کانال‌ها نیست، فقط می‌تونی نگاه کنی.",
-        reply_markup=keyboard
+    await update.message.reply_text(
+        f"✅ سلام {update.effective_user.full_name}! خوش آمدی 🎉\nنیازی به عضویت در کانال‌ها نیست، فقط می‌تونی نگاه کنی.",
+        reply_markup=reply_markup
     )
 
+# ایجاد اپلیکیشن ربات
 async def main():
-    await dp.start_polling(bot)
+    app = ApplicationBuilder().token(API_TOKEN).build()
+    
+    # اضافه کردن Command Handler
+    app.add_handler(CommandHandler("start", start))
+    
+    # شروع ربات
+    await app.start()
+    await app.updater.start_polling()
+    await app.idle()
 
 if __name__ == "__main__":
+    import asyncio
     asyncio.run(main())
